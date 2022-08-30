@@ -1,0 +1,205 @@
+10  GOSUB 900
+20  GOSUB 1200
+30  GOSUB 1450
+
+99  REM display stats
+
+100  IF (T / 2 =  INT (T / 2)) THEN  VTAB VT: HTAB HT: PRINT P2$;: GOTO 130
+110  VTAB VT: HTAB HT: PRINT P1$;
+130  VTAB 9: HTAB 35: PRINT MO;: VTAB 12: HTAB 35: PRINT PU;
+140  VTAB 15: HTAB 35: PRINT BO;: VTAB 18: HTAB 35: PRINT BC:
+
+149  REM win?
+
+150  IF BC = BO THEN  GOTO 800
+
+199  REM get K$
+
+200  VTAB 24: HTAB 1: IF  PEEK ( - 16384) < 128 THEN 200
+210  GET K$:K =  ASC (K$) - 32 * ( ASC (K$) > 96)
+220  IF K = 11 OR K = 73 THEN V =  - 1:H = 0: GOTO 350: REM  up
+230  IF K = 10 OR K = 75 THEN V = 1:H = 0: GOTO 350: REM  down
+240  IF K = 8 OR K = 74 THEN V = 0:H =  - 1: GOTO 350: REM  left
+250  IF K = 21 OR K = 76 THEN V = 0:H = 1: GOTO 350: REM  right
+260  IF K = 81 THEN 810
+265  IF K = 83 THEN  GOSUB 1700: GOTO 100: REM  s
+270  IF K = 85 THEN  GOSUB 1450: GOTO 100: REM  u 
+275  IF K = 82 THEN  GOSUB 1800: GOTO 100: REM  r
+280  IF K = 90 THEN  GOSUB 600: GOTO 100: REM  z
+290  IF K = 78 THEN 850: REM  n
+300  GOTO 200
+
+349  REM process move
+
+350 Z = 1: IF LV(VT + V,HT + H) = 1 THEN MO = MO + 1: GOTO 540
+360  IF LV(VT + V,HT + H) = 3 THEN MO = MO + 1: GOTO 540
+
+370  REM process push
+
+380 Z = 2
+390  IF LV(VT + V,HT + H) = 2 AND LV(VT + V + V,HT + H + H) = 1 THEN 440
+400  IF LV(VT + V,HT + H) = 2 AND LV(VT + V + V,HT + H + H) = 3 THEN 460     
+410  IF LV(VT + V,HT + H) = 4 AND LV(VT + V + V,HT + H + H) = 1 THEN 480     
+420  IF LV(VT + V,HT + H) = 4 AND LV(VT + V + V,HT + H + H) = 3 THEN 500     
+430  GOTO 200
+440 LV(VT + V + V,HT + H + H) = 2
+450  VTAB VT + V + V: HTAB HT + H + H: PRINT BO$;: GOTO 520
+460 LV(VT + V + V,HT + H + H) = 4
+470  VTAB VT + V + V: HTAB HT + H + H:BC = BC + 1: PRINT BC$;: GOTO 520
+480 LV(VT + V + V,HT + H + H) = 2
+490  VTAB VT + V + V: HTAB HT + H + H:BC = BC - 1: PRINT BO$;: GOTO 520
+500 LV(VT + V + V,HT + H + H) = 4
+510  VTAB VT + V + V: HTAB HT + H + H: PRINT BC$;
+520 LV(VT + V,HT + H) = 1:PU = PU + 1
+530  IF  MID$ (A$(VT + V),HT + H,1) = "." OR  MID$ (A$(VT + V),HT + H,1) = "*" OR  MID$ A$(VT + V),HT + H,1) = "+" THEN LV(VT + V,HT + H) = 3
+540  IF  MID$ (A$(VT),HT,1) = "." OR  MID$ (A$(VT),HT,1) = "*" OR  MID$(A$(VT),HT,1) = "+" THEN  VTAB VT: HTAB HT: PRINT ".";: GOTO 560
+550  VTAB VT: HTAB HT: PRINT " ";
+560 VT = VT + V:HT = HT + H:T = T + 1: GOTO 100
+
+599  REM undo
+
+600  IF Z = 0 THEN 200
+610  IF Z = 2 THEN 670
+
+620  REM undo move
+
+630 LV(VT,HT) = 1: VTAB VT: HTAB HT: PRINT " "
+640  IF  MID$ (A$(VT),HT,1) = "." OR  MID$ (A$(VT),HT,1) = "+" OR  MID$(A$(VT),HT,1) = "*" THEN LV(VT,HT) = 3: VTAB VT: HTAB HT: PRINT "."
+650 MO = MO - 1: GOTO 760
+
+660  REM undo push
+
+670  IF LV(VT + V,HT + H) = 4 THEN LV(VT + V,HT + H) = 3
+680  IF LV(VT + V,HT + H) = 2 THEN LV(VT + V,HT + H) = 1: GOTO 720
+690  VTAB VT + V: HTAB HT + H: PRINT ".": VTAB VT: HTAB HT: PRINT BO$
+700 BC = BC - 1:LV(VT,HT) = 2
+710  GOTO 740
+720  VTAB VT + V: HTAB HT + H: PRINT " ": VTAB VT: HTAB HT: PRINT BO$
+730 LV(VT,HT) = 2
+740  IF  MID$ (A$(VT),HT,1) = "." OR  MID$ (A$(VT),HT,1) = "*" OR  MID$(A$(VT),HT,1) = "+" THEN  VTAB VT: HTAB HT: PRINT BC$:LV(VT,HT) = 4: BC = BC + 1
+750 PU = PU - 1
+760 VT = VT - V:HT = HT - H:Z = 0: RETURN 
+
+799  REM level solved
+
+800  VTAB 22: PRINT "Level ";A$(0);" solved."
+810  VTAB 23: HTAB 1: CALL  - 958: PRINT " Another level? (y/n) ";: GET K$
+820  IF K$ = "N" OR K$ = "n" THEN  HOME : VTAB 10: PRINT "Bye!": END 
+830  IF K$ = "Y" OR K$ = "y" THEN  GOTO 850
+840  GOTO 810
+
+849  REM get level
+
+850  HOME 
+860 B$ = "": FOR I = 0 TO 22:A$(I) = "": NEXT 
+870 HH = 0:VV = 0:LL = 0
+880  VTAB 22: HTAB 5: GOTO 20
+
+899  REM initialise
+
+900  DIM A$(22),LV(22,32):D$ =  CHR$ (4):M1$ =  CHR$ (15) +  CHR$ (27):M0$ =  CHR$ (14) +  CHR$ (24):P1$ = M1$ + "]" + M0$:P2$ = "+"
+910 W1$ = M1$ + "W" + M0$:W2$ = M1$ + "V" + M0$:BC$ = M1$ + "@" + M0$:BO$ = M1$ + "A" + M0$:PA$ = "               "
+920 HT = 0:VT = 0:V = 0:H = 0:MO = 0:PU = 0:Z = 0:T = 0:ST = 0
+
+949  REM introduction
+
+950  PRINT D$"pr#3": REM Activate Mousetext
+960  HOME : HTAB 19: PRINT BC$;" RINGOBAN - a Sokoban clone in Applesoft ";BC$
+970  PRINT : HTAB 3: PRINT BC$;" Original game: Hiroyuki Imabayashi ";BC$;" Published by Thinking Rabbit, 1982 ";BC$
+980  PRINT : HTAB 21: PRINT BC$;" This version by Mike Beaumont, 2021 ";BC$
+990  FOR I = 1 TO 80: PRINT "_";: NEXT 
+1000  PRINT : HTAB 9: PRINT BO$;"  The game where you, a warehouse worker, must move all the"
+1010  HTAB 13: PRINT "boxes (";BO$;") to their correct places as marked by '.'"
+1020  PRINT : HTAB 9: PRINT BO$;"  You may only push boxes, and only one at a time."
+1030  PRINT : HTAB 9: PRINT BO$;"  You must be careful to avoid an impossible-to-move"
+1040  HTAB 13: PRINT "situation, for example a box in a corner."
+1050  PRINT : HTAB 9: PRINT BO$;"  Move by using the arrow keys, or the 'ijkl' inverted 'T'."
+1060  PRINT : HTAB 9: PRINT BO$;"  You may also use these keys:"
+1070  HTAB 13: PRINT "'z' to undo the last move, 'u' to reset the current level,"
+1075  HTAB 13: PRINT "'s' to save a position,    'r' to restore a position,"
+1080  HTAB 13: PRINT "'n' to select a new level, 'q' to quit the game."
+1085  GOSUB 1160
+1090  VTAB 8: CALL  - 958: HTAB 7: PRINT BO$;"  Sokoban is a copyrighted work created by Hiroyuki Imabayashi.": PRINT : PRINT 
+1095  HTAB 7: PRINT BO$;"  'Sokoban' and 'sokoban' are registered trademarks of Falcon Co., Ltd.": PRINT : PRINT 
+1100  HTAB 7: PRINT BO$;"  This version is a tribute to Imabayashi-sensei. Arigato gozaimashita!"
+1105  GOSUB 1160
+1130  PRINT  CHR$ (17): HOME 
+1140  RETURN 
+1160  VTAB 23: HTAB 25: PRINT BC$;" press [space] to continue ";BC$
+1165  VTAB 22: IF  PEEK ( - 16384) < 128 THEN 1165
+1170  GET K$:K =  ASC (K$) - 32 * ( ASC (K$) > 96)
+1175  IF K <  > 32 THEN 1165
+1180  RETURN 
+
+1199  REM read level
+
+1200  HOME :EOF = 48840
+1210  VTAB 5: INPUT "Play which Level? (1-90)";LE$
+1215  IF  VAL (LE$) < 1 OR  VAL (LE$) > 90 THEN 1200
+1220 A$(0) = LE$:I = 1: VTAB 10: PRINT "Reading level..."
+1230 LE$ = "/ringoban/levels/level." + LE$
+1240  PRINT D$"open"LE$
+1250  PRINT D$"append"LE$
+1260  PRINT D$"close"
+1270 LE =  PEEK (EOF) +  PEEK (EOF + 1) * 256 +  PEEK (EOF + 2) * 65536
+1280  PRINT D$"open"LE$
+1290  PRINT D$"read"LE$
+1300  FOR J = 1 TO LE
+1310  GET X$:B$ = B$ + X$
+1320  IF  ASC (X$) <  > 13 THEN 1340
+1330 A$(I) = B$:B$ = "":I = I + 1
+1340  NEXT 
+1350  PRINT D$"close"
+1355  VTAB 10: PRINT "Processing..."
+
+1360  REM centre level
+
+1370 HH = 0: FOR J = 1 TO 22:LL =  LEN (A$(J)) - 1: IF HH < LL THEN HH = LL
+1380  NEXT : IF HH > 31 THEN 1400
+1385 HH =  INT ((32 - HH) / 2): IF HH < 1 THEN 1400
+1390  IF I > 22 THEN I = 22
+1395  FOR J = 1 TO I:A$(J) =  LEFT$ (PA$,HH) + A$(J): NEXT 
+1400  IF I < 21 THEN VV =  INT ((22 - I) / 2): FOR J = I TO 1 STEP  - 1:A$(J + VV) = A$(J): NEXT 
+1410  IF VV > 0 THEN  FOR J = 1 TO VV:A$(J) = "": NEXT 
+1420  RETURN 
+
+1449  REM display level
+
+1450  HOME : VTAB 23: PRINT "Displaying level..."
+1455  VTAB 1: HTAB 1:BO = 0:BC = 0:MO = 0:PU = 0
+1460  FOR Y = 1 TO 22: FOR X = 1 TO  LEN (A$(Y)):B$ =  MID$ (A$(Y),X,1)
+1470  IF B$ = "#" THEN LV(Y,X) = 0: IF (X / 2 =  INT (X / 2)) THEN  PRINT W1$;: GOTO 1490
+1480  IF B$ = "#" THEN  PRINT W2$;
+1490  IF B$ = " " THEN LV(Y,X) = 1: PRINT B$;
+1500  IF B$ = "$" THEN LV(Y,X) = 2: PRINT BO$;
+1510  IF B$ = "." THEN LV(Y,X) = 3: PRINT ".";:BO = BO + 1
+1520  IF B$ = "*" THEN LV(Y,X) = 4: PRINT BC$;:BO = BO + 1:BC = BC + 1
+1530  IF B$ = "@" THEN LV(Y,X) = 1: PRINT P2$;:VT = Y:HT = X
+1540  IF B$ = "+" THEN LV(Y,X) = 3: PRINT ".";:BO = BO + 1:VT = Y:HT = X    
+1550  NEXT : PRINT : NEXT 
+1560  VTAB 2: HTAB 33: PRINT "Ring";BO$;"b";BC$;"n"
+1570  VTAB 5: HTAB 34: PRINT "Level": VTAB 6: HTAB 35: PRINT A$(0)
+1580  VTAB 8: HTAB 34: PRINT "Moves"
+1590  VTAB 11: HTAB 34: PRINT "Pushes"
+1600  VTAB 14: HTAB 34: PRINT "Boxes"
+1610  VTAB 17: HTAB 34: PRINT "Placed"
+1620  VTAB 23: CALL  - 958: PRINT "  ";M1$;"K";M0$;"   i   z: undo   n: new   s: store": HTAB 2: PRINT M1$;"HJU";M0$;: HTAB 6: PRINT "jkl  u : reset  q: quit  r: restore";
+1630  RETURN 
+1700  VTAB 23: CALL  - 958
+1705  PRINT "Saving position...":ST = 1
+1710  PRINT D$"store ringo"
+1715  GOSUB 1620
+1720  RETURN 
+1800  VTAB 23: CALL  - 958
+1805  IF ST = 1 THEN 1815
+1810  PRINT " No position saved.";: FOR I = 1 TO 1000: NEXT : INPUT " Press return.";K$: GOTO 1860
+1815  PRINT "Restoring..."
+1820  PRINT D$"restore ringo"
+1830  FOR I = 1 TO 22: FOR J = 1 TO 32
+1835  IF LV(I,J) = 1 THEN  VTAB I: HTAB J: PRINT " "
+1840  IF LV(I,J) = 2 THEN  VTAB I: HTAB J: PRINT BO$
+1845  IF LV(I,J) = 3 THEN  VTAB I: HTAB J: PRINT "."
+1850  IF LV(I,J) = 4 THEN  VTAB I: HTAB J: PRINT BC$
+1855  NEXT : NEXT : VTAB VT: HTAB HT: PRINT P1$
+1860  GOSUB 1620
+1865  RETURN 
