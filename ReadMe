@@ -3,3 +3,10 @@ A Sokoban clone in Applesoft BASIC The aim of this project is to create a versio
 Initially, at least, it will use the text screen, but using Mousetext characters to give it somewhat of a graphical "feel".
 
 So far, the main aim is achieved. It is fully playable. However, enhancements are always possible and comments are welcome.
+
+Currently working on version 2.0
+Enhancements:
+01 - more levels directories
+02 - menu-selectable directories & levels
+03 - save game feature. Not the same as "snapshot". Can have up to 10 (0 - 9) games
+04 - no longer fits on 140 kB disk, requires 800 kB
